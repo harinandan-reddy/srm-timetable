@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Academic calendar - Semester 1, 2026</title>
+<style>
+:root{
+  --blue:#0078d4; --blue-light:#eff6fc; --ink:#201f1e; --ink-2:#605e5c; --ink-3:#a19f9d;
+  --n-light:#f3f2f1; --n-lighter:#faf9f8; --border:#edebe9; --card:#ffffff;
+  --hol-bg:#fde7e9; --hol-ink:#a80000;
+  --c-bio:#dbeef0; --c-bio-bar:#0e7c66;
+  --c-work:#fbe1e6; --c-work-bar:#a4262c;
+  --c-chem:#fbe4d5; --c-chem-bar:#b3521a;
+  --c-prog:#dff3e3; --c-prog-bar:#0f7b3f;
+  --c-math:#e8ebfa; --c-math-bar:#4f52b2;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif}
+body{display:flex;height:100vh;color:var(--ink);background:var(--n-lighter);overflow:hidden}
+
+.sidebar{width:300px;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px;flex-shrink:0}
+.sidebar-header{font-size:1.05rem;font-weight:600;color:var(--blue);margin-bottom:14px}
+.sidebar-header small{display:block;font-size:.72rem;font-weight:400;color:var(--ink-2);margin-top:2px}
+
+.mini-calendar{background:var(--n-lighter);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:14px}
+.mini-cal-header{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:.85rem;margin-bottom:8px}
+.mini-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:.72rem}
+.mini-cal-day-name{color:var(--ink-2);font-weight:600;padding-bottom:4px}
+.mini-cal-cell{padding:5px 0;cursor:pointer;border-radius:50%;position:relative}
+.mini-cal-cell:hover{background:var(--n-light)}
+.mini-cal-cell.selected{background:var(--blue);color:#fff;font-weight:600}
+.mini-cal-cell.other-month{color:#c8c6c4}
+.mini-cal-cell.today-cell{outline:1px solid var(--blue)}
+.mini-cal-cell .dot{display:block;width:4px;height:4px;border-radius:50%;margin:1px auto 0;background:var(--blue)}
+.mini-cal-cell .dot.hol{background:var(--hol-ink)}
+.mini-cal-cell.selected .dot{background:#fff}
+
+.section-title{font-size:.75rem;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+.course-legend{flex:1;overflow-y:auto;border-top:1px solid var(--border);padding-top:12px}
+.legend-item{display:flex;align-items:center;gap:8px;margin-bottom:4px;padding:6px;border-radius:4px;cursor:pointer;border:1px solid transparent;text-align:left;background:none;width:100%}
+.legend-item:hover{background:var(--n-light);border-color:var(--border)}
+.legend-color{width:10px;height:22px;border-radius:2px;flex-shrink:0}
+.legend-text{overflow:hidden}
+.legend-code{display:block;font-weight:700;font-size:.75rem}
+.legend-name{display:block;font-size:.7rem;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.load{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:.72rem;color:var(--ink-2);line-height:1.6}
+
+.main-container{flex:1;display:flex;flex-direction:column;background:var(--card);overflow:hidden}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.header-left{display:flex;align-items:center;gap:14px}
+.header-left h1{font-size:1.15rem;font-weight:600}
+.daytag{font-size:.75rem;font-weight:600;color:var(--blue);background:var(--blue-light);padding:3px 9px;border-radius:10px}
+.btn-group{display:flex;border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.btn{background:var(--card);border:none;padding:6px 12px;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--ink)}
+.btn:hover:not(:disabled){background:var(--n-light)}
+.btn:disabled{color:var(--ink-3);cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+.view-switcher{display:flex;background:var(--n-light);padding:2px;border-radius:4px}
+.view-tab{padding:4px 12px;font-size:.85rem;font-weight:600;cursor:pointer;border-radius:3px;border:none;background:transparent;color:var(--ink-2)}
+.view-tab.active{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.view-content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+.time-grid-container{flex:1;overflow-y:auto}
+.time-grid-header{display:grid;grid-template-columns:78px repeat(5,1fr);border-bottom:1px solid var(--border);background:var(--card);position:sticky;top:0;z-index:5;text-align:center}
+.time-col-header{padding:8px 6px;font-size:.8rem;border-left:1px solid var(--border)}
+.time-col-header .dow{font-weight:600;color:var(--ink-2)}
+.time-col-header .dnum{font-size:1.25rem;font-weight:400;line-height:1.5}
+.time-col-header .dnum.on{background:var(--blue);color:#fff;border-radius:50%;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center}
+.time-col-header .pill{display:inline-block;font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:3px;background:var(--blue-light);color:var(--blue)}
+.time-col-header .pill.off{background:var(--hol-bg);color:var(--hol-ink)}
+.time-col-header .pill.none{background:var(--n-light);color:var(--ink-3);font-weight:400}
+.time-grid-body{display:grid;grid-template-columns:78px repeat(5,1fr);position:relative}
+.time-slot-label{height:78px;font-size:.72rem;color:var(--ink-2);text-align:right;padding:5px 8px 0 0;border-bottom:1px solid var(--border)}
+.time-slot-label b{display:block;font-weight:600;font-size:.75rem;color:var(--ink)}
+.time-slot-column{border-left:1px solid var(--border);position:relative}
+.hour-cell{height:78px;border-bottom:1px solid var(--border)}
+.holiday-column{background:repeating-linear-gradient(45deg,#fdfbfb,#fdfbfb 10px,#faf0f1 10px,#faf0f1 20px)}
+.holiday-column-banner{position:absolute;top:36%;left:50%;transform:translate(-50%,-50%);background:var(--card);color:var(--hol-ink);padding:16px 18px;border-radius:8px;text-align:center;border:1px solid #f5c2c7;box-shadow:0 4px 12px rgba(168,0,0,.08);width:86%;z-index:3}
+.holiday-column-banner .banner-title{font-size:.95rem;font-weight:700;margin-bottom:3px}
+.holiday-column-banner .banner-sub{font-size:.72rem;color:var(--ink-2);font-weight:400}
+.offterm{position:absolute;inset:0;background:var(--n-lighter);display:flex;align-items:flex-start;justify-content:center;padding-top:40px;color:var(--ink-3);font-size:.78rem}
+
+.class-event-block{position:absolute;left:4px;right:4px;border-radius:4px;padding:6px 9px;font-size:.75rem;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.08);border-left:4px solid;line-height:1.35;cursor:pointer;z-index:2;text-align:left;width:auto;background:none}
+.class-event-block:hover{box-shadow:0 4px 8px rgba(0,0,0,.14);filter:brightness(.98)}
+.class-event-block:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.event-time{font-weight:600;font-size:.7rem;color:var(--ink-2);margin-bottom:1px}
+.event-title{font-weight:700;color:var(--ink);margin-bottom:1px}
+.event-code{font-weight:700;font-size:.72rem}
+.event-detail{color:var(--ink-2);font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lab-badge{display:inline-block;color:#fff;font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:2px;vertical-align:middle;margin-left:5px;letter-spacing:.4px}
+.free-block{position:absolute;left:4px;right:4px;border:1px dashed var(--border);border-radius:4px;background:#fcfcfc;display:flex;align-items:center;justify-content:space-between;padding:0 9px;font-size:.72rem;color:var(--ink-3)}
+.now-line{position:absolute;left:0;right:0;border-top:2px solid #c4314b;z-index:4;pointer-events:none}
+.now-line::before{content:"";position:absolute;left:-4px;top:-5px;width:8px;height:8px;border-radius:50%;background:#c4314b}
+
+.month-view-container{flex:1;display:flex;flex-direction:column;overflow-y:auto;padding:14px}
+.month-grid-header{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-weight:600;color:var(--ink-2);font-size:.8rem;padding-bottom:6px}
+.month-grid{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:minmax(96px,1fr);gap:1px;background:var(--border);border:1px solid var(--border);flex:1}
+.month-cell{background:var(--card);padding:6px;display:flex;flex-direction:column;gap:3px;cursor:pointer;text-align:left;border:none;font:inherit}
+.month-cell:hover{background:var(--n-lighter)}
+.month-cell.other-month{background:#fbfbfb;color:var(--ink-3)}
+.month-cell.weekend{background:var(--n-lighter)}
+.cell-date-num{font-size:.8rem;font-weight:600;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;flex-shrink:0}
+.month-cell.today .cell-date-num{background:var(--blue);color:#fff}
+.cell-badge{font-size:.68rem;padding:2px 5px;border-radius:3px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell-badge.working{background:var(--blue-light);color:var(--blue)}
+.cell-badge.holiday{background:var(--hol-bg);color:var(--hol-ink)}
+.cell-chips{display:flex;flex-wrap:wrap;gap:2px;margin-top:1px}
+.chip-dot{width:100%;height:4px;border-radius:2px}
+.cell-note{font-size:.65rem;color:var(--ink-2)}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .18s}
+.modal-overlay.active{opacity:1;pointer-events:auto}
+.modal-card{background:var(--card);width:460px;max-width:92vw;border-radius:8px;box-shadow:0 8px 16px rgba(0,0,0,.15);overflow:hidden}
+.modal-header{padding:14px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-bottom:1px solid var(--border);background:var(--n-lighter)}
+.modal-header h3{font-size:.98rem;font-weight:600}
+.modal-header p{font-size:.75rem;color:var(--ink-2);margin-top:2px}
+.modal-close{background:transparent;border:none;font-size:1.3rem;cursor:pointer;color:var(--ink-2);line-height:1}
+.modal-body{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-label{font-size:.68rem;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.5px}
+.modal-value{font-size:.85rem;font-weight:500;display:block;margin-top:2px}
+.modal-part{border:1px solid var(--border);border-radius:6px;padding:10px 12px}
+.modal-part h4{font-size:.78rem;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+
+@media (max-width:980px){
+  .sidebar{display:none}
+  .time-grid-header,.time-grid-body{grid-template-columns:60px repeat(5,1fr)}
+  .event-detail{display:none}
+}
+</style>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="apple-touch-icon" href="../icons/icon-180.png">
+<meta name="theme-color" content="#0078d4">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-header">Calendar &amp; schedule
+    <small>B.Tech UG first year · Batch 1 · Semester 1, 2026</small>
+  </div>
+
+  <div class="mini-calendar">
+    <div class="mini-cal-header">
+      <span id="miniCalMonthTitle"></span>
+      <span>
+        <button class="btn" id="miniPrevBtn" style="padding:2px 7px" aria-label="Previous month">&#9664;</button>
+        <button class="btn" id="miniNextBtn" style="padding:2px 7px" aria-label="Next month">&#9654;</button>
+      </span>
+    </div>
+    <div class="mini-cal-grid" id="miniCalGrid"></div>
+  </div>
+
+  <div class="course-legend">
+    <div class="section-title">My courses</div>
+    <div id="legendList"></div>
+    <div class="load">
+      <b id="loadCredits"></b> credits · <b id="loadContact"></b> contact hours per day-order cycle<br>
+      Term 21 Jul – 7 Dec 2026 · 19 weeks
+    </div>
+  </div>
+</aside>
+
+<div class="main-container">
+  <header>
+    <div class="header-left">
+      <h1 id="headerTitle">Work week</h1>
+      <span class="daytag" id="weekTag"></span>
+      <div class="btn-group">
+        <button class="btn" id="prevPeriodBtn" aria-label="Previous">&#9664;</button>
+        <button class="btn" id="todayBtn">Today</button>
+        <button class="btn" id="nextPeriodBtn" aria-label="Next">&#9654;</button>
+      </div>
+    </div>
+    <div class="view-switcher">
+      <a class="view-tab" href="../mobile/" style="text-decoration:none">Mobile view</a>
+      <button class="view-tab active" data-view="workweek">Work week</button>
+      <button class="view-tab" data-view="month">Month</button>
+    </div>
+  </header>
+  <div class="view-content" id="viewContent"></div>
+</div>
+
+<div class="modal-overlay" id="courseModal">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-header">
+      <div><h3 id="modalTitle"></h3><p id="modalSub"></p></div>
+      <button class="modal-close" id="modalCloseBtn" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script src="../assets/data.js"></script>
+<script>
+/* ---------- helpers ---------- */
+
+var ROW = 78;
+var DOW_SHORT = ["Mon","Tue","Wed","Thu","Fri"];
+var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+var TERM_START = new Date(2026,6,21), TERM_END = new Date(2026,11,7);
+
+function pad(n){ return n < 10 ? "0"+n : ""+n; }
+function key(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+function addDays(d,n){ var x = new Date(d.getTime()); x.setDate(x.getDate()+n); return x; }
+function mondayOf(d){ var x = new Date(d.getFullYear(),d.getMonth(),d.getDate()); return addDays(x, -((x.getDay()+6)%7)); }
+function mins(t){ return (+t.slice(0,2))*60 + (+t.slice(3)); }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function place(v){ return v.location+" · "+v.building+" · "+v.floor+" · "+v.room; }
+
+var FIRST_MON = mondayOf(TERM_START), LAST_MON = mondayOf(TERM_END);
+var TODAY = new Date(); TODAY = new Date(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
+
+var currentView = "workweek";
+var currentDate = (function(){
+  var t = new Date(TODAY.getTime());
+  if (t < TERM_START) return new Date(TERM_START.getTime());
+  if (t > TERM_END) return new Date(TERM_END.getTime());
+  return t;
+})();
+var miniCalDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+function blocksFor(dayOrder){
+  var s = TT[dayOrder] || {}, out = [], h, c, prev;
+  for (h = 1; h <= 12; h++){
+    c = s[h];
+    if (!c) continue;
+    prev = out[out.length-1];
+    if (prev && prev.k === c[0] && prev.kind === c[1] && prev.to === h-1) prev.to = h;
+    else out.push({k:c[0], kind:c[1], from:h, to:h});
+  }
+  return out;
+}
+
+/* ---------- sidebar ---------- */
+
+function renderLegend(){
+  var host = document.getElementById("legendList"), html = "", credits = 0, hours = 0;
+  ORDER.forEach(function(id){
+    var c = COURSES[id];
+    credits += c.credit;
+    html += '<button class="legend-item" data-course="'+id+'">'+
+      '<span class="legend-color" style="background:'+c.bar+'"></span>'+
+      '<span class="legend-text"><span class="legend-code">'+c.code+'</span>'+
+      '<span class="legend-name">'+esc(c.name)+'</span></span></button>';
+  });
+  for (var d = 1; d <= 5; d++) hours += Object.keys(TT[d] || {}).length;
+  host.innerHTML = html;
+  document.getElementById("loadCredits").textContent = credits;
+  document.getElementById("loadContact").textContent = hours;
+  host.querySelectorAll(".legend-item").forEach(function(b){
+    b.onclick = function(){ openCourseModal(b.getAttribute("data-course")); };
+  });
+}
+
+function renderMiniCalendar(){
+  var grid = document.getElementById("miniCalGrid");
+  var y = miniCalDate.getFullYear(), m = miniCalDate.getMonth();
+  document.getElementById("miniCalMonthTitle").textContent = MONTHS[m]+" "+y;
+  grid.innerHTML = "";
+  ["S","M","T","W","T","F","S"].forEach(function(d){
+    var e = document.createElement("div");
+    e.className = "mini-cal-day-name"; e.textContent = d; grid.appendChild(e);
+  });
+  var first = new Date(y,m,1).getDay(), total = new Date(y,m+1,0).getDate(), prevTotal = new Date(y,m,0).getDate();
+  for (var i = first; i > 0; i--) grid.appendChild(miniCell(new Date(y,m-1,prevTotal-i+1), true));
+  for (var j = 1; j <= total; j++) grid.appendChild(miniCell(new Date(y,m,j), false));
+  var rem = (first+total) % 7 === 0 ? 0 : 7 - ((first+total) % 7);
+  for (var q = 1; q <= rem; q++) grid.appendChild(miniCell(new Date(y,m+1,q), true));
+}
+
+function miniCell(date, other){
+  var cell = document.createElement("div");
+  cell.className = "mini-cal-cell" + (other ? " other-month" : "");
+  cell.textContent = date.getDate();
+  var k = key(date), info = CAL[k];
+  if (k === key(TODAY)) cell.className += " today-cell";
+  if (k === key(currentDate)) cell.className += " selected";
+  if (info){
+    var dot = document.createElement("span");
+    dot.className = "dot" + (info.holiday ? " hol" : "");
+    cell.appendChild(dot);
+  }
+  cell.onclick = function(){
+    currentDate = date;
+    miniCalDate = new Date(date.getFullYear(), date.getMonth(), 1);
+    renderMiniCalendar(); renderMainView();
+  };
+  return cell;
+}
+
+/* ---------- modal ---------- */
+
+function openCourseModal(id, kindFocus){
+  var c = COURSES[id];
+  if (!c) return;
+  document.getElementById("modalTitle").textContent = c.code;
+  document.getElementById("modalSub").textContent = c.name;
+  var parts = "";
+  ["theory","lab"].forEach(function(kind){
+    var v = c[kind];
+    if (!v) return;
+    var on = kindFocus === kind ? ' style="border-color:'+c.bar+'"' : "";
+    parts += '<div class="modal-part"'+on+'><h4><span style="width:9px;height:9px;border-radius:2px;display:inline-block;background:'+c.bar+'"></span>'+
+      (kind === "theory" ? "Theory" : "Practical")+' · slot '+v.slot+'</h4>'+
+      '<span class="modal-label">Where</span><span class="modal-value">'+esc(place(v))+'</span></div>';
+  });
+  document.getElementById("modalBody").innerHTML =
+    '<div class="modal-grid">'+
+      '<div><span class="modal-label">Faculty</span><span class="modal-value">'+esc(c.faculty)+'</span></div>'+
+      '<div><span class="modal-label">Staff ID</span><span class="modal-value">'+c.empId+'</span></div>'+
+      '<div><span class="modal-label">Credits</span><span class="modal-value">'+c.credit+'</span></div>'+
+      '<div><span class="modal-label">Hours per cycle</span><span class="modal-value">'+hoursPerCycle(id)+'</span></div>'+
+    '</div>'+parts;
+  document.getElementById("courseModal").classList.add("active");
+}
+
+function hoursPerCycle(id){
+  var n = 0;
+  for (var d = 1; d <= 5; d++){
+    var s = TT[d] || {};
+    for (var h in s) if (s[h][0] === id) n++;
+  }
+  return n;
+}
+
+function closeCourseModal(){ document.getElementById("courseModal").classList.remove("active"); }
+
+/* ---------- work week ---------- */
+
+function renderWorkWeekView(){
+  var host = document.getElementById("viewContent");
+  host.innerHTML = "";
+  var start = mondayOf(currentDate), days = [], weeks = {};
+  for (var i = 0; i < 5; i++) days.push(addDays(start,i));
+
+  var wrap = document.createElement("div");
+  wrap.className = "time-grid-container";
+
+  var head = document.createElement("div");
+  head.className = "time-grid-header";
+  head.innerHTML = '<div class="time-col-header"></div>';
+  days.forEach(function(d,i){
+    var info = CAL[key(d)], pill;
+    if (!info) pill = '<span class="pill none">Outside term</span>';
+    else if (info.holiday) pill = '<span class="pill off">'+esc(info.holiday)+'</span>';
+    else { pill = '<span class="pill">Day '+info.day+'</span>'; weeks[info.week] = 1; }
+    head.innerHTML += '<div class="time-col-header"><div class="dow">'+DOW_SHORT[i]+'</div>'+
+      '<div><span class="dnum'+(key(d) === key(TODAY) ? " on" : "")+'">'+d.getDate()+'</span></div>'+
+      '<div>'+pill+'</div></div>';
+  });
+  wrap.appendChild(head);
+
+  var body = document.createElement("div");
+  body.className = "time-grid-body";
+  var col0 = document.createElement("div");
+  TIME.forEach(function(t,i){
+    var lab = document.createElement("div");
+    lab.className = "time-slot-label";
+    lab.innerHTML = "<b>"+t[0]+"</b>"+t[1]+"<br><span style='color:#a19f9d'>hr "+(i+1)+"</span>";
+    col0.appendChild(lab);
+  });
+  body.appendChild(col0);
+
+  days.forEach(function(d,i){
+    var info = CAL[key(d)];
+    var col = document.createElement("div");
+    col.className = "time-slot-column" + (info && info.holiday ? " holiday-column" : "");
+    for (var h = 0; h < 12; h++){
+      var cell = document.createElement("div");
+      cell.className = "hour-cell";
+      col.appendChild(cell);
+    }
+    if (!info){
+      var off = document.createElement("div");
+      off.className = "offterm";
+      off.textContent = "Outside the academic term";
+      col.appendChild(off);
+    } else if (info.holiday){
+      var ban = document.createElement("div");
+      ban.className = "holiday-column-banner";
+      ban.innerHTML = '<div class="banner-title">'+esc(info.holiday)+'</div><div class="banner-sub">Holiday · day order pauses and resumes tomorrow</div>';
+      col.appendChild(ban);
+    } else {
+      var busy = {};
+      blocksFor(info.day).forEach(function(b){
+        for (var q = b.from; q <= b.to; q++) busy[q] = 1;
+        var c = COURSES[b.k], v = c[b.kind] || c.theory || c.lab, span = b.to - b.from + 1;
+        var slots = SLOTGRID[info.day].slice(b.from-1, b.to).join(", ");
+        var el = document.createElement("button");
+        el.className = "class-event-block";
+        el.style.top = ((b.from-1)*ROW + 3) + "px";
+        el.style.height = (span*ROW - 7) + "px";
+        el.style.background = c.fill;
+        el.style.borderLeftColor = c.bar;
+        el.innerHTML = '<div class="event-time">'+TIME[b.from-1][0]+' – '+TIME[b.to-1][1]+'</div>'+
+          '<div class="event-title"><span class="event-code" style="color:'+c.bar+'">'+c.code+'</span>'+
+          (b.kind === "lab" ? '<span class="lab-badge" style="background:'+c.bar+'">LAB</span>' : '')+'</div>'+
+          '<div class="event-detail">'+esc(c.name)+'</div>'+
+          '<div class="event-detail">'+esc(v.building)+' · '+esc(v.room)+'</div>'+
+          (span > 1 ? '<div class="event-detail">'+esc(c.faculty)+' · slot '+slots+'</div>' : '');
+        el.title = c.code+" — "+c.name+"\n"+(b.kind === "lab" ? "Practical" : "Theory")+" · slot "+slots+
+                   "\n"+TIME[b.from-1][0]+"–"+TIME[b.to-1][1]+"\n"+c.faculty+"\n"+place(v);
+        el.onclick = function(){ openCourseModal(b.k, b.kind); };
+        col.appendChild(el);
+      });
+      for (var h2 = 1; h2 <= 12; h2++){
+        if (busy[h2]) continue;
+        var fr = document.createElement("div");
+        fr.className = "free-block";
+        fr.style.top = ((h2-1)*ROW + 3) + "px";
+        fr.style.height = (ROW - 7) + "px";
+        fr.innerHTML = "<span>Free</span><span>" + SLOTGRID[info.day][h2-1] + "</span>";
+        fr.title = "Free · hour "+h2+" · "+TIME[h2-1][0]+"–"+TIME[h2-1][1];
+        col.appendChild(fr);
+      }
+    }
+    if (key(d) === key(TODAY)){
+      var top = nowOffset();
+      if (top !== null){
+        var line = document.createElement("div");
+        line.className = "now-line";
+        line.style.top = top + "px";
+        col.appendChild(line);
+      }
+    }
+    body.appendChild(col);
+  });
+
+  wrap.appendChild(body);
+  host.appendChild(wrap);
+
+  var a = days[0], b2 = days[4], same = a.getMonth() === b2.getMonth();
+  document.getElementById("headerTitle").textContent =
+    a.getDate()+(same ? "" : " "+MONTHS[a.getMonth()].slice(0,3))+" – "+b2.getDate()+" "+MONTHS[b2.getMonth()].slice(0,3)+" 2026";
+  var w = Object.keys(weeks).map(Number).sort(function(x,y){ return x-y; });
+  document.getElementById("weekTag").textContent = w.length ? "Week "+w.join(" / ") : "No teaching days";
+  document.getElementById("prevPeriodBtn").disabled = +mondayOf(currentDate) <= +FIRST_MON;
+  document.getElementById("nextPeriodBtn").disabled = +mondayOf(currentDate) >= +LAST_MON;
+}
+
+function nowOffset(){
+  var n = new Date(), m = n.getHours()*60 + n.getMinutes();
+  for (var i = 0; i < 12; i++){
+    var s = mins(TIME[i][0]), e = mins(TIME[i][1]);
+    if (m >= s && m <= e) return i*ROW + ((m-s)/(e-s))*ROW;
+    if (i < 11 && m > e && m < mins(TIME[i+1][0])) return (i+1)*ROW;
+  }
+  return null;
+}
+
+/* ---------- month ---------- */
+
+function renderMonthView(){
+  var y = currentDate.getFullYear(), m = currentDate.getMonth();
+  document.getElementById("headerTitle").textContent = MONTHS[m]+" "+y;
+  document.getElementById("weekTag").textContent = "Term 21 Jul – 7 Dec";
+  document.getElementById("viewContent").innerHTML =
+    '<div class="month-view-container"><div class="month-grid-header">'+
+    '<div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div>'+
+    '<div class="month-grid" id="monthGrid"></div></div>';
+  var grid = document.getElementById("monthGrid");
+  var first = new Date(y,m,1).getDay(), total = new Date(y,m+1,0).getDate(), prevTotal = new Date(y,m,0).getDate();
+  for (var i = first; i > 0; i--) monthCell(grid, new Date(y,m-1,prevTotal-i+1), true);
+  for (var j = 1; j <= total; j++) monthCell(grid, new Date(y,m,j), false);
+  var rem = (first+total) % 7 === 0 ? 0 : 7 - ((first+total) % 7);
+  for (var q = 1; q <= rem; q++) monthCell(grid, new Date(y,m+1,q), true);
+  document.getElementById("prevPeriodBtn").disabled = (y === 2026 && m <= 6);
+  document.getElementById("nextPeriodBtn").disabled = (y === 2026 && m >= 11);
+}
+
+function monthCell(grid, date, other){
+  var cell = document.createElement("button");
+  var wd = date.getDay();
+  cell.className = "month-cell" + (other ? " other-month" : "") + ((wd === 0 || wd === 6) ? " weekend" : "");
+  if (key(date) === key(TODAY)) cell.className += " today";
+  var info = CAL[key(date)];
+  var html = '<span class="cell-date-num">'+date.getDate()+'</span>';
+  if (info && info.holiday){
+    html += '<span class="cell-badge holiday">'+esc(info.holiday)+'</span>';
+  } else if (info){
+    html += '<span class="cell-badge working">Wk '+info.week+' · Day '+info.day+'</span>';
+    var seen = {}, chips = "";
+    blocksFor(info.day).forEach(function(b){
+      if (seen[b.k]) return;
+      seen[b.k] = 1;
+      chips += '<span class="chip-dot" style="background:'+COURSES[b.k].bar+';flex:1"></span>';
+    });
+    html += '<span class="cell-chips">'+chips+'</span>';
+    if (info.note) html += '<span class="cell-note">'+esc(info.note)+'</span>';
+  }
+  cell.innerHTML = html;
+  cell.onclick = function(){
+    currentDate = date;
+    setView("workweek");
+  };
+  grid.appendChild(cell);
+}
+
+/* ---------- shell ---------- */
+
+function renderMainView(){
+  if (currentView === "workweek") renderWorkWeekView(); else renderMonthView();
+}
+
+function setView(v){
+  currentView = v;
+  document.querySelectorAll(".view-tab").forEach(function(t){
+    t.classList.toggle("active", t.getAttribute("data-view") === v);
+  });
+  renderMainView();
+}
+
+document.querySelectorAll(".view-tab").forEach(function(tab){
+  tab.onclick = function(){ setView(tab.getAttribute("data-view")); };
+});
+
+document.getElementById("todayBtn").onclick = function(){
+  currentDate = new Date(TODAY.getTime());
+  if (currentDate < TERM_START) currentDate = new Date(TERM_START.getTime());
+  if (currentDate > TERM_END) currentDate = new Date(TERM_END.getTime());
+  miniCalDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  renderMiniCalendar(); renderMainView();
+};
+
+document.getElementById("prevPeriodBtn").onclick = function(){ shift(-1); };
+document.getElementById("nextPeriodBtn").onclick = function(){ shift(1); };
+
+function shift(dir){
+  if (currentView === "workweek"){
+    var t = addDays(mondayOf(currentDate), dir*7);
+    if (+t < +FIRST_MON || +t > +LAST_MON) return;
+    currentDate = t;
+  } else {
+    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth()+dir, 1);
+  }
+  miniCalDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  renderMiniCalendar(); renderMainView();
+}
+
+document.getElementById("miniPrevBtn").onclick = function(){
+  miniCalDate = new Date(miniCalDate.getFullYear(), miniCalDate.getMonth()-1, 1);
+  renderMiniCalendar();
+};
+document.getElementById("miniNextBtn").onclick = function(){
+  miniCalDate = new Date(miniCalDate.getFullYear(), miniCalDate.getMonth()+1, 1);
+  renderMiniCalendar();
+};
+
+document.getElementById("modalCloseBtn").onclick = closeCourseModal;
+document.getElementById("courseModal").onclick = function(e){
+  if (e.target === document.getElementById("courseModal")) closeCourseModal();
+};
+addEventListener("keydown", function(e){
+  if (e.key === "Escape") closeCourseModal();
+  if (e.key === "ArrowLeft") shift(-1);
+  if (e.key === "ArrowRight") shift(1);
+});
+
+renderLegend();
+renderMiniCalendar();
+renderMainView();
+</script>
+<script>
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("../sw.js").catch(function(){});
+</script>
+</body>
+</html>

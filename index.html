@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0078d4">
+<title>Academic calendar - Semester 1, 2026</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:#201f1e;
+  background:#faf9f8;min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:#fff;border:1px solid #edebe9;border-radius:14px;padding:28px 24px;max-width:400px;width:100%;text-align:center}
+h1{font-size:1.15rem;font-weight:600;margin-bottom:4px}
+p{font-size:.82rem;color:#605e5c;margin-bottom:20px;line-height:1.5}
+a.b{display:block;min-height:48px;line-height:48px;border-radius:10px;text-decoration:none;font-size:.9rem;font-weight:600;margin-bottom:10px}
+a.primary{background:#0078d4;color:#fff}
+a.ghost{border:1px solid #edebe9;color:#0078d4}
+small{font-size:.72rem;color:#a19f9d;display:block;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Academic calendar</h1>
+  <p>B.Tech UG first year &middot; Batch 1 &middot; Semester 1, 2026</p>
+  <a class="b primary" href="mobile/">Mobile view</a>
+  <a class="b ghost" href="desktop/">Desktop view</a>
+  <a class="b ghost" href="calendar/srm_timetable.ics">Add to phone calendar (.ics)</a>
+  <small id="hint">Redirecting to the best fit&hellip;</small>
+</div>
+<script>
+(function(){
+  var q = location.search;
+  if (q.indexOf("stay") > -1){ document.getElementById("hint").textContent = "Pick a view."; return; }
+  var small = matchMedia("(max-width: 820px)").matches || matchMedia("(pointer: coarse)").matches;
+  location.replace(small ? "mobile/" : "desktop/");
+})();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function(){});
+</script>
+</body>
+</html>

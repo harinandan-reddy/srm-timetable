@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0078d4">
+<title>Academic calendar - Semester 1, 2026</title>
+<style>
+:root{
+  --blue:#0078d4; --blue-light:#eff6fc; --ink:#201f1e; --ink-2:#605e5c; --ink-3:#a19f9d;
+  --n-light:#f3f2f1; --n-lighter:#faf9f8; --border:#edebe9; --card:#ffffff;
+  --hol-bg:#fde7e9; --hol-ink:#a80000; --now:#c4314b;
+  --c-bio:#dbeef0; --c-bio-bar:#0e7c66;
+  --c-work:#fbe1e6; --c-work-bar:#a4262c;
+  --c-chem:#fbe4d5; --c-chem-bar:#b3521a;
+  --c-prog:#dff3e3; --c-prog-bar:#0f7b3f;
+  --c-math:#e8ebfa; --c-math-bar:#4f52b2;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --tabbar-h:60px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  color:var(--ink);background:var(--n-lighter);
+  min-height:100vh;min-height:100dvh;overscroll-behavior-y:none;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;
+  -webkit-appearance:none;appearance:none;border-radius:0;display:block;width:auto;text-align:inherit}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+.app{max-width:560px;margin:0 auto;background:var(--card);min-height:100vh;min-height:100dvh;
+  display:flex;flex-direction:column;border-left:1px solid var(--border);border-right:1px solid var(--border)}
+
+/* ---------- top bar ---------- */
+.topbar{position:-webkit-sticky;position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--border);
+  padding:calc(env(safe-area-inset-top,0px) + 8px) 8px 0}
+.tb-row{display:flex;align-items:center;gap:4px}
+.nav-btn{width:44px;height:44px;line-height:44px;text-align:center;border-radius:8px;font-size:1.1rem;color:var(--ink-2);flex:0 0 44px}
+.nav-btn:active{background:var(--n-light)}
+.nav-btn:disabled{color:#d8d6d4}
+.tb-title{flex:1;min-width:0;text-align:center;line-height:1.2}
+.tb-title h1{font-size:1.02rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-title .sub{display:block;font-size:.72rem;color:var(--ink-2);margin-top:2px}
+.today-chip{height:44px;line-height:44px;text-align:center;padding:0 10px;font-size:.8rem;font-weight:600;color:var(--blue);border-radius:8px;flex-shrink:0}
+.today-chip:active{background:var(--blue-light)}
+
+/* day strip */
+.daystrip{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:6px 2px 8px}
+.ds-cell{display:block;width:100%;padding:6px 2px;border-radius:10px;text-align:center;line-height:1.25;border:1px solid transparent}
+.ds-cell .dow{font-size:.66rem;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.3px}
+.ds-cell .dnum{font-size:1.05rem;font-weight:600;display:block;margin:1px 0}
+.ds-cell .tag{font-size:.6rem;font-weight:600;color:var(--blue)}
+.ds-cell .tag.off{color:var(--hol-ink)}
+.ds-cell .tag.none{color:var(--ink-3);font-weight:400}
+.ds-cell.today{border-color:var(--blue)}
+.ds-cell.sel{background:var(--blue);color:#fff}
+.ds-cell.sel .dow,.ds-cell.sel .tag,.ds-cell.sel .tag.off,.ds-cell.sel .tag.none{color:#fff}
+
+/* ---------- content ---------- */
+main{flex:1;padding:12px 12px 4px;background:var(--n-lighter)}
+
+.summary{display:flex;gap:8px;margin-bottom:10px}
+.summary div{flex:1 1 0;min-width:0;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 10px}
+.summary b{display:block;font-size:.95rem;font-weight:600;line-height:1.25;word-break:break-word}
+.summary span{font-size:.68rem;color:var(--ink-2);text-transform:uppercase;letter-spacing:.4px}
+
+.tl-row{display:flex;gap:8px;margin-bottom:8px}
+.tl-time{width:52px;flex:0 0 52px;padding-top:10px;text-align:right;font-size:.68rem;color:var(--ink-2);line-height:1.4}
+.tl-time b{display:block;font-size:.74rem;font-weight:600;color:var(--ink)}
+
+.class-card{flex:1 1 auto;min-width:0;background:var(--card);border:1px solid var(--border);border-left:4px solid;
+  border-radius:10px;padding:10px 12px;text-align:left;width:100%;display:block}
+.class-card:active{filter:brightness(.97)}
+.cc-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px}
+.cc-code{font-weight:700;font-size:.82rem}
+.lab-badge{color:#fff;font-size:.58rem;font-weight:700;padding:2px 5px;border-radius:3px;letter-spacing:.4px}
+.now-badge{background:var(--now);color:#fff;font-size:.58rem;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:.4px}
+.cc-name{font-size:.85rem;font-weight:600;line-height:1.3;margin-bottom:4px}
+.cc-meta{font-size:.72rem;color:var(--ink-2);line-height:1.5}
+.cc-meta .sep{color:var(--ink-3);margin:0 4px}
+
+.free-card{flex:1 1 auto;min-width:0;border:1px dashed var(--border);border-radius:10px;background:#fcfcfc;
+  padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.76rem;color:var(--ink-3)}
+.free-card b{font-weight:600;color:var(--ink-2)}
+
+.notice{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px 18px;text-align:center}
+.notice.holiday{background:var(--hol-bg);border-color:#f5c2c7}
+.notice .n-title{font-size:1rem;font-weight:700;margin-bottom:4px}
+.notice.holiday .n-title{color:var(--hol-ink)}
+.notice .n-sub{font-size:.78rem;color:var(--ink-2);line-height:1.5}
+.notice button{display:inline-block;margin-top:12px;text-align:center;line-height:44px;min-height:44px;padding:0 16px;border-radius:8px;background:var(--blue);color:#fff;font-size:.85rem;font-weight:600}
+
+.note-strip{background:var(--blue-light);color:var(--blue);font-size:.72rem;font-weight:600;
+  padding:8px 12px;border-radius:8px;margin-bottom:10px}
+
+/* week view */
+.week-day{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden}
+.wd-head{display:block;padding:0;border-bottom:1px solid var(--border);background:var(--n-lighter);width:100%;text-align:left}
+.wd-head-in{display:flex;align-items:center;gap:8px;padding:10px 12px;min-height:44px}
+.wd-head .wd-date{font-size:.85rem;font-weight:700}
+.wd-head .wd-pill{margin-left:auto;font-size:.68rem;font-weight:600;padding:3px 8px;border-radius:10px;
+  background:var(--blue-light);color:var(--blue)}
+.wd-head .wd-pill.off{background:var(--hol-bg);color:var(--hol-ink)}
+.wd-head .wd-pill.none{background:var(--n-light);color:var(--ink-3);font-weight:400}
+.wd-head.today .wd-date{color:var(--blue)}
+.wd-list{padding:6px 12px 10px}
+.wd-item{display:block;padding:0;border-bottom:1px solid var(--n-light);width:100%;text-align:left}
+.wd-item-in{display:flex;align-items:center;gap:8px;padding:9px 0;min-height:44px}
+.wd-item:last-child{border-bottom:none}
+.wd-bar{width:4px;height:26px;border-radius:2px;flex-shrink:0}
+.wd-time{font-size:.68rem;color:var(--ink-2);width:78px;flex-shrink:0}
+.wd-code{font-size:.76rem;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wd-empty{padding:12px;font-size:.76rem;color:var(--ink-3);text-align:center}
+
+/* month view */
+.m-head{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:.66rem;font-weight:600;
+  color:var(--ink-2);padding-bottom:6px}
+.m-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);
+  border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.m-cell{background:var(--card);width:100%;padding:0;text-align:center}
+.m-cell-in{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:62px;padding:4px 3px}
+.m-cell-in > *{margin-bottom:3px}
+.m-cell.other{background:#fbfbfb;color:var(--ink-3)}
+.m-cell.weekend{background:var(--n-lighter)}
+.m-num{font-size:.8rem;font-weight:600;width:24px;height:24px;line-height:24px;display:block;border-radius:50%;flex-shrink:0}
+.m-cell.today .m-num{background:var(--blue);color:#fff}
+.m-cell.sel .m-num{outline:2px solid var(--blue);outline-offset:-2px}
+.m-order{font-size:.6rem;font-weight:600;color:var(--blue)}
+.m-chips{display:flex;gap:2px;width:100%;padding:0 3px}
+.m-chip{flex:1;height:3px;border-radius:2px}
+.m-hol{width:5px;height:5px;border-radius:50%;background:var(--hol-ink)}
+.m-legend{margin-top:10px;font-size:.7rem;color:var(--ink-2);line-height:1.6}
+
+/* courses view */
+.course-card{background:var(--card);border:1px solid var(--border);border-left:4px solid;border-radius:12px;
+  padding:12px;margin-bottom:10px;width:100%;text-align:left;display:block}
+.course-card:active{filter:brightness(.97)}
+.cd-code{font-size:.8rem;font-weight:700}
+.cd-name{font-size:.9rem;font-weight:600;margin:2px 0 6px;line-height:1.3}
+.cd-meta{font-size:.72rem;color:var(--ink-2);line-height:1.6}
+.load-note{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;
+  font-size:.74rem;color:var(--ink-2);line-height:1.7}
+.load-note b{color:var(--ink)}
+
+/* ---------- bottom tab bar ---------- */
+.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:30;display:grid;grid-template-columns:repeat(4,1fr);
+  background:var(--card);border-top:1px solid var(--border);
+  padding-bottom:var(--safe-b);max-width:560px;margin:0 auto}
+.tab{height:var(--tabbar-h);width:100%;text-align:center;padding:0;font-size:.68rem;font-weight:600;color:var(--ink-2)}
+.tab-in{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%}
+.tab svg{margin-bottom:3px}
+.tab svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0}
+.tab.active{color:var(--blue)}
+
+/* ---------- bottom sheet ---------- */
+.sheet-overlay{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;
+  transition:opacity .2s;display:flex;align-items:flex-end;justify-content:center}
+.sheet-overlay.active{opacity:1;pointer-events:auto}
+.sheet{background:var(--card);width:100%;max-width:560px;border-radius:16px 16px 0 0;
+  max-height:85vh;max-height:88dvh;overflow-y:auto;transform:translateY(100%);transition:transform .22s ease-out;
+  padding-bottom:calc(var(--safe-b) + 12px)}
+.sheet-overlay.active .sheet{transform:translateY(0)}
+.grabber{width:36px;height:4px;border-radius:2px;background:var(--border);margin:8px auto 0}
+.sheet-head{padding:10px 16px 12px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start}
+.sheet-head h3{font-size:.95rem;font-weight:700}
+.sheet-head p{font-size:.78rem;color:var(--ink-2);margin-top:2px;line-height:1.4}
+.sheet-close{width:44px;height:44px;font-size:1.4rem;color:var(--ink-2);margin:-8px -8px 0 auto;flex-shrink:0}
+.sheet-body{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.fact-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fact-label{font-size:.65rem;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.5px}
+.fact-value{font-size:.85rem;font-weight:500;display:block;margin-top:2px;line-height:1.4}
+.part{border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.part h4{font-size:.78rem;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.part .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
+
+.foot-links{display:flex;gap:16px;justify-content:center;padding:4px 12px
+  calc(var(--tabbar-h) + var(--safe-b) + 20px);background:var(--n-lighter)}
+.foot-links a{font-size:.74rem;color:var(--blue);text-decoration:none;min-height:44px;line-height:44px}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="apple-touch-icon" href="../icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+</head>
+<body>
+
+<div class="app">
+  <header class="topbar">
+    <div class="tb-row">
+      <button class="nav-btn" id="prevBtn" aria-label="Previous">&#9664;</button>
+      <div class="tb-title">
+        <h1 id="headerTitle">Day</h1>
+        <span class="sub" id="subTag"></span>
+      </div>
+      <button class="today-chip" id="todayBtn">Today</button>
+      <button class="nav-btn" id="nextBtn" aria-label="Next">&#9654;</button>
+    </div>
+    <div class="daystrip" id="dayStrip"></div>
+  </header>
+
+  <main id="viewContent"></main>
+  <div class="foot-links">
+    <a href="../desktop/">Desktop view</a>
+    <a href="../calendar/srm_timetable.ics">Add to iPhone Calendar</a>
+  </div>
+
+  <nav class="tabbar">
+    <button class="tab active" data-view="day"><span class="tab-in"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Day</span></button>
+    <button class="tab" data-view="week"><span class="tab-in"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M9 9v12M15 9v12"/></svg>Week</span></button>
+    <button class="tab" data-view="month"><span class="tab-in"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01"/></svg>Month</span></button>
+    <button class="tab" data-view="courses"><span class="tab-in"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 5v14M12 9h5M12 13h5"/></svg>Courses</span></button>
+  </nav>
+</div>
+
+<div class="sheet-overlay" id="courseModal">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="grabber"></div>
+    <div class="sheet-head">
+      <div><h3 id="modalTitle"></h3><p id="modalSub"></p></div>
+      <button class="sheet-close" id="modalCloseBtn" aria-label="Close">&times;</button>
+    </div>
+    <div class="sheet-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script src="../assets/data.js"></script>
+<script>
+/* ---------- helpers ---------- */
+
+var DOW_SHORT = ["Mon","Tue","Wed","Thu","Fri"];
+var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+var TERM_START = new Date(2026,6,21), TERM_END = new Date(2026,11,7);
+
+function pad(n){ return n < 10 ? "0"+n : ""+n; }
+function key(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+function addDays(d,n){ var x = new Date(d.getTime()); x.setDate(x.getDate()+n); return x; }
+function mondayOf(d){ var x = new Date(d.getFullYear(),d.getMonth(),d.getDate()); return addDays(x, -((x.getDay()+6)%7)); }
+function mins(t){ return (+t.slice(0,2))*60 + (+t.slice(3)); }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function place(v){ return v.location+" · "+v.building+" · "+v.floor+" · "+v.room; }
+function fmtDate(d){ return DOW_SHORT_FULL[d.getDay()]+", "+d.getDate()+" "+MONTHS[d.getMonth()].slice(0,3); }
+var DOW_SHORT_FULL = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+var FIRST_MON = mondayOf(TERM_START), LAST_MON = mondayOf(TERM_END);
+var TODAY = new Date(); TODAY = new Date(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
+
+var currentView = "day";
+var currentDate = (function(){
+  var t = new Date(TODAY.getTime());
+  if (t < TERM_START) return new Date(TERM_START.getTime());
+  if (t > TERM_END) return new Date(TERM_END.getTime());
+  return t;
+})();
+
+function blocksFor(dayOrder){
+  var s = TT[dayOrder] || {}, out = [], h, c, prev;
+  for (h = 1; h <= 12; h++){
+    c = s[h];
+    if (!c) continue;
+    prev = out[out.length-1];
+    if (prev && prev.k === c[0] && prev.kind === c[1] && prev.to === h-1) prev.to = h;
+    else out.push({k:c[0], kind:c[1], from:h, to:h});
+  }
+  return out;
+}
+
+/* class blocks + collapsed free gaps, in hour order */
+function dayItems(dayOrder){
+  var blocks = blocksFor(dayOrder), byStart = {}, busy = {}, items = [], h = 1, s;
+  blocks.forEach(function(b){
+    byStart[b.from] = b;
+    for (var q = b.from; q <= b.to; q++) busy[q] = 1;
+  });
+  while (h <= 12){
+    if (busy[h]){ items.push({type:"class", b:byStart[h]}); h = byStart[h].to + 1; }
+    else { s = h; while (h <= 12 && !busy[h]) h++; items.push({type:"free", from:s, to:h-1}); }
+  }
+  return items;
+}
+
+function currentHourIndex(){
+  var n = new Date(), m = n.getHours()*60 + n.getMinutes(), i;
+  for (i = 0; i < 12; i++) if (m >= mins(TIME[i][0]) && m <= mins(TIME[i][1])) return i+1;
+  return 0;
+}
+
+function nearestTeachingDay(from, dir){
+  var d = new Date(from.getTime()), i;
+  for (i = 0; i < 14; i++){
+    if (CAL[key(d)] && CAL[key(d)].day) return d;
+    d = addDays(d, dir);
+    if (d < TERM_START || d > TERM_END) return null;
+  }
+  return null;
+}
+
+/* ---------- course sheet ---------- */
+
+function openCourseModal(id, kindFocus){
+  var c = COURSES[id];
+  if (!c) return;
+  document.getElementById("modalTitle").textContent = c.code;
+  document.getElementById("modalSub").textContent = c.name;
+  var parts = "";
+  ["theory","lab"].forEach(function(kind){
+    var v = c[kind];
+    if (!v) return;
+    var on = kindFocus === kind ? ' style="border-color:'+c.bar+'"' : "";
+    parts += '<div class="part"'+on+'><h4><span class="dot" style="background:'+c.bar+'"></span>'+
+      (kind === "theory" ? "Theory" : "Practical")+' · slot '+v.slot+'</h4>'+
+      '<span class="fact-label">Where</span><span class="fact-value">'+esc(place(v))+'</span></div>';
+  });
+  document.getElementById("modalBody").innerHTML =
+    '<div class="fact-grid">'+
+      '<div><span class="fact-label">Faculty</span><span class="fact-value">'+esc(c.faculty)+'</span></div>'+
+      '<div><span class="fact-label">Staff ID</span><span class="fact-value">'+c.empId+'</span></div>'+
+      '<div><span class="fact-label">Credits</span><span class="fact-value">'+c.credit+'</span></div>'+
+      '<div><span class="fact-label">Hours per cycle</span><span class="fact-value">'+hoursPerCycle(id)+'</span></div>'+
+    '</div>'+parts;
+  document.getElementById("courseModal").classList.add("active");
+}
+
+function hoursPerCycle(id){
+  var n = 0, d, s, h;
+  for (d = 1; d <= 5; d++){
+    s = TT[d] || {};
+    for (h in s) if (s[h][0] === id) n++;
+  }
+  return n;
+}
+
+function closeCourseModal(){ document.getElementById("courseModal").classList.remove("active"); }
+
+/* ---------- day view ---------- */
+
+function renderDayStrip(){
+  var strip = document.getElementById("dayStrip");
+  if (currentView !== "day" && currentView !== "week"){ strip.style.display = "none"; return; }
+  strip.style.display = "grid";
+  strip.innerHTML = "";
+  var start = mondayOf(currentDate), i;
+  for (i = 0; i < 5; i++){
+    (function(d){
+      var info = CAL[key(d)], cell = document.createElement("button");
+      cell.className = "ds-cell" +
+        (key(d) === key(TODAY) ? " today" : "") +
+        (currentView === "day" && key(d) === key(currentDate) ? " sel" : "");
+      var tag = !info ? '<span class="tag none">—</span>'
+        : info.holiday ? '<span class="tag off">Holiday</span>'
+        : '<span class="tag">Day '+info.day+'</span>';
+      cell.innerHTML = '<span class="dow">'+DOW_SHORT[d.getDay()-1]+'</span>'+
+        '<span class="dnum">'+d.getDate()+'</span>'+tag;
+      cell.onclick = function(){ currentDate = d; setView("day"); };
+      strip.appendChild(cell);
+    })(addDays(start, i));
+  }
+}
+
+function renderDayView(){
+  var host = document.getElementById("viewContent"), info = CAL[key(currentDate)], html = "";
+  document.getElementById("headerTitle").textContent = fmtDate(currentDate)+" 2026";
+  document.getElementById("subTag").textContent = info && info.day
+    ? "Day order "+info.day+" · Week "+info.week
+    : (info && info.holiday ? "Holiday" : "No classes");
+
+  if (!info){
+    var nxt = nearestTeachingDay(currentDate, 1);
+    host.innerHTML = '<div class="notice"><div class="n-title">No classes</div>'+
+      '<div class="n-sub">This date is outside the teaching calendar.</div>'+
+      (nxt ? '<button id="jumpBtn">Go to '+fmtDate(nxt)+'</button>' : '')+'</div>';
+    if (nxt) document.getElementById("jumpBtn").onclick = function(){ currentDate = nxt; renderAll(); };
+    return;
+  }
+  if (info.holiday){
+    host.innerHTML = '<div class="notice holiday"><div class="n-title">'+esc(info.holiday)+'</div>'+
+      '<div class="n-sub">Holiday. Day order pauses and resumes on the next working day.</div>'+
+      '<button id="jumpBtn">Next working day</button></div>';
+    document.getElementById("jumpBtn").onclick = function(){
+      var n = nearestTeachingDay(addDays(currentDate,1), 1);
+      if (n){ currentDate = n; renderAll(); }
+    };
+    return;
+  }
+
+  var items = dayItems(info.day), classes = items.filter(function(x){ return x.type === "class"; });
+  var hours = 0;
+  classes.forEach(function(x){ hours += x.b.to - x.b.from + 1; });
+  var firstB = classes[0] ? classes[0].b : null, lastB = classes.length ? classes[classes.length-1].b : null;
+
+  if (info.note) html += '<div class="note-strip">'+esc(info.note)+'</div>';
+  html += '<div class="summary">'+
+    '<div><b>'+classes.length+'</b><span>Sessions</span></div>'+
+    '<div><b>'+hours+'</b><span>Hours</span></div>'+
+    '<div><b>'+(firstB ? TIME[firstB.from-1][0]+"–"+TIME[lastB.to-1][1] : "—")+'</b><span>On campus</span></div>'+
+    '</div>';
+
+  var nowHr = key(currentDate) === key(TODAY) ? currentHourIndex() : 0;
+
+  items.forEach(function(it){
+    if (it.type === "free"){
+      var span = it.to - it.from + 1;
+      html += '<div class="tl-row"><div class="tl-time"><b>'+TIME[it.from-1][0]+'</b>'+TIME[it.to-1][1]+'</div>'+
+        '<div class="free-card"><span><b>Free</b> · '+span+' hr'+(span > 1 ? "s" : "")+'</span>'+
+        '<span>'+SLOTGRID[info.day].slice(it.from-1, it.to).join(" ")+'</span></div></div>';
+      return;
+    }
+    var b = it.b, c = COURSES[b.k], v = c[b.kind] || c.theory || c.lab;
+    var slots = SLOTGRID[info.day].slice(b.from-1, b.to).join(", ");
+    var live = nowHr >= b.from && nowHr <= b.to;
+    html += '<div class="tl-row"><div class="tl-time"><b>'+TIME[b.from-1][0]+'</b>'+TIME[b.to-1][1]+'</div>'+
+      '<button class="class-card" data-course="'+b.k+'" data-kind="'+b.kind+'" '+
+      'style="background:'+c.fill+';border-left-color:'+c.bar+'">'+
+      '<div class="cc-top"><span class="cc-code" style="color:'+c.bar+'">'+c.code+'</span>'+
+      (b.kind === "lab" ? '<span class="lab-badge" style="background:'+c.bar+'">LAB</span>' : '')+
+      (live ? '<span class="now-badge">NOW</span>' : '')+'</div>'+
+      '<div class="cc-name">'+esc(c.name)+'</div>'+
+      '<div class="cc-meta">'+esc(v.building)+'<span class="sep">·</span>'+esc(v.room)+'<br>'+
+      esc(c.faculty)+'<span class="sep">·</span>slot '+slots+'</div>'+
+      '</button></div>';
+  });
+
+  host.innerHTML = html;
+  bindCourseButtons(host);
+}
+
+/* ---------- week view ---------- */
+
+function renderWeekView(){
+  var host = document.getElementById("viewContent"), start = mondayOf(currentDate), html = "", weeks = {}, i;
+  for (i = 0; i < 5; i++){
+    (function(d){
+      var info = CAL[key(d)];
+      var pill = !info ? '<span class="wd-pill none">Outside term</span>'
+        : info.holiday ? '<span class="wd-pill off">Holiday</span>'
+        : '<span class="wd-pill">Day '+info.day+'</span>';
+      if (info && info.day) weeks[info.week] = 1;
+      html += '<div class="week-day"><button class="wd-head'+(key(d) === key(TODAY) ? " today" : "")+
+        '" data-date="'+key(d)+'"><span class="wd-head-in"><span class="wd-date">'+DOW_SHORT[d.getDay()-1]+' '+d.getDate()+'</span>'+pill+'</span></button>';
+      if (!info){ html += '<div class="wd-empty">No academic day</div></div>'; return; }
+      if (info.holiday){ html += '<div class="wd-empty">'+esc(info.holiday)+'</div></div>'; return; }
+      html += '<div class="wd-list">';
+      blocksFor(info.day).forEach(function(b){
+        var c = COURSES[b.k];
+        html += '<button class="wd-item" data-course="'+b.k+'" data-kind="'+b.kind+'">'+
+          '<span class="wd-item-in"><span class="wd-bar" style="background:'+c.bar+'"></span>'+
+          '<span class="wd-time">'+TIME[b.from-1][0]+'–'+TIME[b.to-1][1]+'</span>'+
+          '<span class="wd-code">'+c.code+(b.kind === "lab" ? " · Lab" : "")+'</span></span></button>';
+      });
+      html += '</div></div>';
+    })(addDays(start, i));
+  }
+  var a = start, b2 = addDays(start,4), same = a.getMonth() === b2.getMonth();
+  document.getElementById("headerTitle").textContent =
+    a.getDate()+(same ? "" : " "+MONTHS[a.getMonth()].slice(0,3))+" – "+b2.getDate()+" "+MONTHS[b2.getMonth()].slice(0,3);
+  var w = Object.keys(weeks).map(Number).sort(function(x,y){ return x-y; });
+  document.getElementById("subTag").textContent = w.length ? "Week "+w.join(" / ")+" · 2026" : "No teaching days";
+  host.innerHTML = html;
+  bindCourseButtons(host);
+  host.querySelectorAll(".wd-head").forEach(function(h){
+    h.onclick = function(){
+      var p = h.getAttribute("data-date").split("-");
+      currentDate = new Date(+p[0], +p[1]-1, +p[2]);
+      setView("day");
+    };
+  });
+}
+
+/* ---------- month view ---------- */
+
+function renderMonthView(){
+  var host = document.getElementById("viewContent");
+  var y = currentDate.getFullYear(), m = currentDate.getMonth();
+  document.getElementById("headerTitle").textContent = MONTHS[m]+" "+y;
+  document.getElementById("subTag").textContent = "Term 21 Jul – 7 Dec · 19 weeks";
+  var html = '<div class="m-head"><div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div></div><div class="m-grid">';
+  var first = new Date(y,m,1).getDay(), total = new Date(y,m+1,0).getDate(), prevTotal = new Date(y,m,0).getDate(), i, j, q;
+  for (i = first; i > 0; i--) html += monthCell(new Date(y,m-1,prevTotal-i+1), true);
+  for (j = 1; j <= total; j++) html += monthCell(new Date(y,m,j), false);
+  var rem = (first+total) % 7 === 0 ? 0 : 7 - ((first+total) % 7);
+  for (q = 1; q <= rem; q++) html += monthCell(new Date(y,m+1,q), true);
+  html += '</div><div class="m-legend">Tap a date to open its day plan. Coloured bars show the courses scheduled on that day order; a red dot marks a holiday.</div>';
+  host.innerHTML = html;
+  host.querySelectorAll(".m-cell").forEach(function(cell){
+    cell.onclick = function(){
+      var p = cell.getAttribute("data-date").split("-");
+      currentDate = new Date(+p[0], +p[1]-1, +p[2]);
+      setView("day");
+    };
+  });
+}
+
+function monthCell(date, other){
+  var wd = date.getDay(), info = CAL[key(date)];
+  var cls = "m-cell" + (other ? " other" : "") + ((wd === 0 || wd === 6) ? " weekend" : "") +
+    (key(date) === key(TODAY) ? " today" : "") + (key(date) === key(currentDate) ? " sel" : "");
+  var inner = '<span class="m-num">'+date.getDate()+'</span>';
+  if (info && info.holiday){
+    inner += '<span class="m-hol"></span>';
+  } else if (info){
+    inner += '<span class="m-order">D'+info.day+'</span>';
+    var seen = {}, chips = "";
+    blocksFor(info.day).forEach(function(b){
+      if (seen[b.k]) return;
+      seen[b.k] = 1;
+      chips += '<span class="m-chip" style="background:'+COURSES[b.k].bar+'"></span>';
+    });
+    inner += '<span class="m-chips">'+chips+'</span>';
+  }
+  return '<button class="'+cls+'" data-date="'+key(date)+'"><span class="m-cell-in">'+inner+'</span></button>';
+}
+
+/* ---------- courses view ---------- */
+
+function renderCoursesView(){
+  var host = document.getElementById("viewContent"), html = "", credits = 0, hours = 0, d;
+  document.getElementById("headerTitle").textContent = "My courses";
+  document.getElementById("subTag").textContent = "B.Tech UG first year · Batch 1 · Sem 1";
+  ORDER.forEach(function(id){
+    var c = COURSES[id];
+    credits += c.credit;
+    var where = [];
+    if (c.theory) where.push("Theory · "+c.theory.room);
+    if (c.lab) where.push("Lab · "+c.lab.room);
+    html += '<button class="course-card" data-course="'+id+'" style="border-left-color:'+c.bar+'">'+
+      '<span class="cd-code" style="color:'+c.bar+'">'+c.code+'</span>'+
+      '<div class="cd-name">'+esc(c.name)+'</div>'+
+      '<div class="cd-meta">'+esc(c.faculty)+'<br>'+c.credit+' credits · '+hoursPerCycle(id)+' hrs per cycle<br>'+
+      esc(where.join(" · "))+'</div></button>';
+  });
+  for (d = 1; d <= 5; d++) hours += Object.keys(TT[d] || {}).length;
+  html += '<div class="load-note"><b>'+credits+'</b> credits · <b>'+hours+
+    '</b> contact hours per day-order cycle<br>Term 21 Jul – 7 Dec 2026 · 19 weeks</div>';
+  host.innerHTML = html;
+  bindCourseButtons(host);
+}
+
+function bindCourseButtons(host){
+  host.querySelectorAll("[data-course]").forEach(function(el){
+    el.onclick = function(){ openCourseModal(el.getAttribute("data-course"), el.getAttribute("data-kind")); };
+  });
+}
+
+/* ---------- shell ---------- */
+
+function renderAll(){
+  renderDayStrip();
+  if (currentView === "day") renderDayView();
+  else if (currentView === "week") renderWeekView();
+  else if (currentView === "month") renderMonthView();
+  else renderCoursesView();
+  updateNavButtons();
+  scrollTo(0,0);
+}
+
+function updateNavButtons(){
+  var p = document.getElementById("prevBtn"), n = document.getElementById("nextBtn"),
+      hide = currentView === "courses";
+  p.style.visibility = n.style.visibility = hide ? "hidden" : "visible";
+  if (hide) return;
+  if (currentView === "day"){
+    p.disabled = +currentDate <= +TERM_START;
+    n.disabled = +currentDate >= +TERM_END;
+  } else if (currentView === "week"){
+    p.disabled = +mondayOf(currentDate) <= +FIRST_MON;
+    n.disabled = +mondayOf(currentDate) >= +LAST_MON;
+  } else {
+    var y = currentDate.getFullYear(), m = currentDate.getMonth();
+    p.disabled = (y === 2026 && m <= 6);
+    n.disabled = (y === 2026 && m >= 11);
+  }
+}
+
+function setView(v){
+  currentView = v;
+  document.querySelectorAll(".tab").forEach(function(t){
+    t.classList.toggle("active", t.getAttribute("data-view") === v);
+  });
+  renderAll();
+}
+
+function shift(dir){
+  if (currentView === "courses") return;
+  if (currentView === "day"){
+    var t = addDays(currentDate, dir);
+    if (t < TERM_START || t > TERM_END) return;
+    currentDate = t;
+  } else if (currentView === "week"){
+    var w = addDays(mondayOf(currentDate), dir*7);
+    if (+w < +FIRST_MON || +w > +LAST_MON) return;
+    currentDate = w;
+  } else {
+    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth()+dir, 1);
+  }
+  renderAll();
+}
+
+document.querySelectorAll(".tab").forEach(function(tab){
+  tab.onclick = function(){ setView(tab.getAttribute("data-view")); };
+});
+document.getElementById("prevBtn").onclick = function(){ shift(-1); };
+document.getElementById("nextBtn").onclick = function(){ shift(1); };
+document.getElementById("todayBtn").onclick = function(){
+  currentDate = new Date(TODAY.getTime());
+  if (currentDate < TERM_START) currentDate = new Date(TERM_START.getTime());
+  if (currentDate > TERM_END) currentDate = new Date(TERM_END.getTime());
+  renderAll();
+};
+
+document.getElementById("modalCloseBtn").onclick = closeCourseModal;
+document.getElementById("courseModal").onclick = function(e){
+  if (e.target === document.getElementById("courseModal")) closeCourseModal();
+};
+addEventListener("keydown", function(e){
+  if (e.key === "Escape") closeCourseModal();
+  if (e.key === "ArrowLeft") shift(-1);
+  if (e.key === "ArrowRight") shift(1);
+});
+
+/* swipe to change period */
+(function(){
+  var x0 = null, y0 = null, main = document.getElementById("viewContent");
+  main.addEventListener("touchstart", function(e){
+    x0 = e.changedTouches[0].clientX; y0 = e.changedTouches[0].clientY;
+  }, {passive:true});
+  main.addEventListener("touchend", function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)*1.6) shift(dx < 0 ? 1 : -1);
+    x0 = y0 = null;
+  }, {passive:true});
+})();
+
+renderAll();
+</script>
+<script>
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("../sw.js").catch(function(){});
+</script>
+</body>
+</html>
