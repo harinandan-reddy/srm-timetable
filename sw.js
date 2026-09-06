@@ -1,5 +1,5 @@
 /* Offline shell. Bump CACHE on every content change to force an update. */
-var CACHE = "srm-timetable-v1";
+var CACHE = "srm-timetable-v2";
 var ASSETS = [
   "./", "./index.html",
   "./mobile/", "./mobile/index.html",
@@ -24,9 +24,17 @@ self.addEventListener("activate", function(e){
   }).then(function(){ return self.clients.claim(); }));
 });
 
-/* cache-first, refresh in background */
+/* data.js network-first so timetable edits show without bumping CACHE; rest cache-first */
 self.addEventListener("fetch", function(e){
   if (e.request.method !== "GET") return;
+  if (e.request.url.indexOf("/assets/data.js") > -1){
+    e.respondWith(fetch(e.request).then(function(res){
+      var copy = res.clone();
+      caches.open(CACHE).then(function(c){ c.put(e.request, copy); });
+      return res;
+    }).catch(function(){ return caches.match(e.request); }));
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then(function(hit){
       var net = fetch(e.request).then(function(res){
