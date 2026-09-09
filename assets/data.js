@@ -34,18 +34,19 @@ var COURSES = {
     theory:{slot:"D",location:"Annexure-II",building:"University Building",floor:"7th floor",room:"702"}},
   LCA:{code:"26LCA1003J",name:"French",credit:3,
     faculty:"Dr. Velupula Krishnaiah",empId:"103405",fill:"var(--c-lca)",bar:"var(--c-lca-bar)",
-    theory:{slot:"F",location:"Annexure-II",building:"University Building",floor:"5th floor",room:"504"}},
+    theory:{slot:"F",location:"Annexure-II",building:"University Building",floor:"5th floor",room:"504"},
+    slotX:{slot:"X",location:"—",building:"—",floor:"—",room:"—"}},
   GNN:{code:"26GNN1006L",name:"National Sports Organization",credit:2,
-    faculty:"",empId:"",fill:"var(--c-gnn)",bar:"var(--c-gnn-bar)",
-    theory:{slot:"X",location:"—",building:"—",floor:"—",room:"—"}}
+    faculty:"Dr. Jayasingh Albert Chandrasekar S",empId:"100688",fill:"var(--c-gnn)",bar:"var(--c-gnn-bar)",
+    theory:{slot:"P12, P13, P14, P15",location:"—",building:"Directorate of Sports",floor:"Ground floor",room:"Sports, Sports Lab"}}
 };
 var ORDER = ["BTB","MEE","CYB","CSE","MAB","LCA","GNN"];
 
 var TT = {
   1:{3:["LCA","theory"],4:["LCA","theory"],5:["BTB","theory"],7:["MEE","lab"],8:["MEE","lab"],9:["MEE","lab"],10:["MEE","lab"]},
-  2:{6:["CYB","theory"],7:["CYB","theory"],8:["BTB","theory"],9:["BTB","theory"],11:["GNN","theory"]},
+  2:{2:["GNN","theory"],3:["GNN","theory"],4:["GNN","theory"],5:["GNN","theory"],6:["CYB","theory"],7:["CYB","theory"],8:["BTB","theory"],9:["BTB","theory"],11:["LCA","slotX"]},
   3:{4:["MAB","theory"],5:["CYB","theory"]},
-  4:{1:["CYB","lab"],2:["CYB","lab"],6:["MAB","theory"],7:["MAB","theory"],8:["CYB","theory"],9:["CSE","theory"],11:["GNN","theory"]},
+  4:{1:["CYB","lab"],2:["CYB","lab"],6:["MAB","theory"],7:["MAB","theory"],8:["CYB","theory"],9:["CSE","theory"],11:["LCA","slotX"]},
   5:{1:["CSE","theory"],2:["CSE","theory"],4:["LCA","theory"],5:["MAB","theory"],7:["CSE","lab"],8:["CSE","lab"]}
 };
 
